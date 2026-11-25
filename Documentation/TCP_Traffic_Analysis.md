@@ -10,11 +10,13 @@ This investigation analyzes TCP communication between a MacBook Air administrato
 - **Server:** Ubuntu Server 26.04.1 LTS
 - **Virtualization:** Oracle VirtualBox
 - **Network Configuration:** Bridged Adapter
-- **Server IP (Original):** 192.168.1.193
-- **Client IP (Original):** 192.168.1.118
+- **Server IP (Sanitized):** 203.0.113.20
+- **Client IP (Sanitized):** 198.51.100.10
 - **Network Interface:** enp0s3
 - **Analysis Tool:** TShark
 - **Capture Format:** PCAP
+
+*Note: The IP addresses shown in this document are reserved documentation addresses. They replace the original private IP addresses used in the lab.*
 
 ## 3. Objectives
 
@@ -33,6 +35,8 @@ An initial connection attempt from the MacBook Air to TCP port 8080 on the Ubunt
 
 Packet analysis showed repeated TCP SYN packets without a corresponding SYN-ACK response.
 
+This indicated that the TCP connection could not initially be established.
+
 ### Firewall Investigation
 
 The Ubuntu server's UFW firewall was active and configured to deny incoming connections by default. SSH traffic on port 22 was permitted.
@@ -43,13 +47,19 @@ A temporary firewall rule was added to allow TCP port 8080 specifically from the
 
 A temporary Netcat listener was started on the Ubuntu server:
 
-`nc -lv 8080`
+```bash
+nc -lv 8080
+```
 
-A connection test was then performed from the MacBook Air:
+A connection test was then performed from the MacBook Air using the sanitized server address as a documentation example:
 
-`nc -vz 192.168.1.193 8080`
+```bash
+nc -vz 203.0.113.20 8080
+```
 
-The connection succeeded.
+The original lab connection succeeded.
+
+*Note: The sanitized documentation address is illustrative and is not intended to be used to reconnect to the original lab server.*
 
 ### Packet Capture
 
@@ -65,16 +75,18 @@ The resulting capture contained six packets demonstrating the TCP handshake and 
 | 2 | SYN-ACK | Server acknowledges request |
 | 3 | ACK | Client completes handshake |
 | 4 | FIN-ACK | Client begins connection termination |
-| 5 | FIN-ACK | Server acknowledges and closes its side |
+| 5 | FIN-ACK | Server responds and closes its side |
 | 6 | ACK | Client acknowledges server termination |
 
 ### Connection Details
 
-- Original client port: 49745
-- Server port: 8080
-- Total packets: 6
-- TCP handshake: Successful
-- Connection termination: Normal
+- **Client IP (Sanitized):** 198.51.100.10
+- **Server IP (Sanitized):** 203.0.113.20
+- **Original Client Port:** 49745
+- **Server Port:** 8080
+- **Total Packets:** 6
+- **TCP Handshake:** Successful
+- **Connection Termination:** Normal
 
 ## 6. Security and Firewall Verification
 
@@ -83,6 +95,8 @@ After testing, the temporary firewall exception for TCP port 8080 was removed.
 UFW was checked again to confirm that the temporary rule was no longer present.
 
 The default incoming-deny policy remained active, and SSH access on port 22 remained permitted.
+
+This restored the server's firewall configuration after testing.
 
 ## 7. Capture Sanitization
 
@@ -93,14 +107,16 @@ The Ethernet addresses were also replaced with generic values.
 The sanitized capture was re-examined with TShark to verify that:
 
 - Original private IPv4 addresses were no longer present.
-- Replacement addresses were used consistently in both directions.
+- Replacement addresses were used consistently in both communication directions.
 - All six TCP packets remained intact.
 - TCP flags and connection sequence were preserved.
 
 The public capture uses reserved documentation addresses:
 
-- Client: `198.51.100.10`
-- Server: `203.0.113.20`
+- **Client:** 198.51.100.10
+- **Server:** 203.0.113.20
+
+These addresses are reserved for documentation and examples and are not assigned as ordinary public internet addresses.
 
 ## 8. Findings
 
@@ -112,6 +128,7 @@ The investigation demonstrated:
 - The TCP three-way handshake completed successfully.
 - The connection terminated normally.
 - The temporary firewall exception was removed after testing.
+- The original firewall configuration was restored.
 
 ## 9. Conclusion
 
@@ -119,10 +136,14 @@ This investigation demonstrated practical TCP traffic analysis, packet capture, 
 
 TShark provided visibility into individual TCP packets and their flags, while UFW was used to investigate and control network access.
 
-The sanitized packet capture provides supporting evidence of the successful TCP communication without exposing the original private IP addresses.
+The sanitized packet capture provides supporting evidence of successful TCP communication without exposing the original private IP addresses.
 
 ## 10. Evidence
 
-- Sanitized TCP packet capture: `Captures/tcp_handshake_capture_sanitized_final.pcap`
-- DNS packet capture: `Captures/dns_capture.pcap`
-- Packet analysis screenshots: `Screenshots/`
+- **Sanitized TCP packet capture:** `Captures/tcp_handshake_capture_sanitized_final.pcap`
+- **DNS packet capture:** `Captures/dns_capture.pcap`
+- **TCP connection overview:** `Screenshots/03_TCP_Connection_Overview.png`
+- **TCP three-way handshake:** `Screenshots/04_TCP_Three_Way_Handshake.png`
+- **TCP connection termination:** `Screenshots/05_TCP_Connection_Termination.png`
+- **Firewall port 8080 allowed:** `Screenshots/06_Firewall_Port_8080_Allowed.png`
+- **Final firewall verification:** `Screenshots/07_Firewall_Final_Verification.png`
